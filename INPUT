@@ -1,0 +1,13 @@
+geo_in_file	./geo2.in
+rcut_potential	8.5
+extra_rcut_neighbor	2
+max_neighbor	300
+
+epsilon 0.01032 #eV
+sigma 3.405 #Angstrom
+
+mass 4.0026  #g/mol
+read_vel 1
+init_temperature 100    # for generating initial velocity when "read_vel" is 0
+
+append 1

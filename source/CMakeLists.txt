@@ -1,0 +1,10 @@
+project(mymd)
+add_definitions(-std=c++11)
+add_executable(mymd 
+    vec3.cpp
+    Input.cpp
+    Geo.cpp
+    LJ_pot.cpp
+    Print_step.cpp
+    main.cpp
+    )

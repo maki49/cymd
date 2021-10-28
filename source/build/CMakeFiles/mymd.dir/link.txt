@@ -1,0 +1,1 @@
+/usr/bin/c++ -rdynamic CMakeFiles/mymd.dir/vec3.o CMakeFiles/mymd.dir/Input.o CMakeFiles/mymd.dir/Geo.o CMakeFiles/mymd.dir/LJ_pot.o CMakeFiles/mymd.dir/Print_step.o CMakeFiles/mymd.dir/main.o -o mymd 
