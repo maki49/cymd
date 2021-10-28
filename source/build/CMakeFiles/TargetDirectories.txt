@@ -1,3 +1,0 @@
-/home/fortneu49/work/md-homework/caoyu-homework6/source/build/CMakeFiles/rebuild_cache.dir
-/home/fortneu49/work/md-homework/caoyu-homework6/source/build/CMakeFiles/edit_cache.dir
-/home/fortneu49/work/md-homework/caoyu-homework6/source/build/CMakeFiles/mymd.dir
