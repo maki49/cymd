@@ -35,6 +35,7 @@ void Print_step::print_position(int istep, bool append)
             << std::setw(20) << this->geo_step.atom_coords[ia].y
             << std::setw(20) << this->geo_step.atom_coords[ia].z << std::endl;
     }
+    ofs << std::endl;
     ofs.close();
     return;
 }
@@ -57,6 +58,7 @@ void Print_step::print_velocity(int istep, bool append)
             << std::setw(20) << this->geo_step.atom_v[ia].y
             << std::setw(20) << this->geo_step.atom_v[ia].z << std::endl;
     }
+    ofs << std::endl;
     ofs.close();
     return;
 }
@@ -79,6 +81,7 @@ void Print_step::print_force(int istep, bool append)
             << std::setw(20) << this->lj_step.atom_force[ia].y
             << std::setw(20) << this->lj_step.atom_force[ia].z << std::endl;
     }
+    ofs << std::endl;
     ofs.close();
     return;
 }

@@ -6,5 +6,6 @@ add_executable(mymd
     Geo.cpp
     LJ_pot.cpp
     Print_step.cpp
+    MD_step.cpp
     main.cpp
     )

@@ -1,3 +1,4 @@
 source/build
 *.out
 .vscode
+mymd

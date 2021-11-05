@@ -1,3 +1,5 @@
+#ifndef _INPUT_
+#define _INPUT_
 #include <string>
 class Input
 {
@@ -20,5 +22,12 @@ public:
     int read_vel = 0;
     double init_temperature;  //(K)
     bool append = true;
-};
 
+    int nstep = 0;
+    double dt = 0.01;//ps
+    int steps_per_search = 5;   //howmany steps between each update of adjacent list
+    int steps_per_print = 2;   // howmany steps between each print
+    std::string ensemble = "NVE";
+
+};
+#endif

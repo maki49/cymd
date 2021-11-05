@@ -35,6 +35,12 @@ void Input::read_input_file(std::string& input_file)
         if (tmp == "read_vel") ifs >> this->read_vel;
         if (tmp == "init_temperature") ifs >> this->init_temperature;
         if (tmp == "append") ifs >> this->append;
+        if (tmp == "nstep") ifs >> this->nstep;
+        if (tmp == "dt") ifs >> this->dt;
+        if (tmp == "steps_per_print") ifs >> this->steps_per_print;
+        if (tmp == "steps_per_search") ifs >> this->steps_per_search;
+        if (tmp == "ensemble") ifs >> this->ensemble;
+        
     }
     
 }

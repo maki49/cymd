@@ -18,7 +18,7 @@ public:
     double rcut;    //rcut_potential
 
     LJ_pot();
-    LJ_pot(double sigma, double epsilon, double rcut);
+    LJ_pot(int natom, double sigma, double epsilon, double rcut);
     ~LJ_pot();
 
     void cal_EpF(Geo geo);

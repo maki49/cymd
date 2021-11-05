@@ -8,7 +8,7 @@ public:
     const long double kb = 1.38064852;    //*1e-23, bolzmann constant
     const long double NA = 6.02214086;      //*1e23
     const double Ap2ms = 100;  //Ang/ps -> m/s
-    const double e = 1.6021766208;
+    const double e = 1.602176634;   //1e-19 C
 
     Geo();
     Geo(double m, double T0);
@@ -20,8 +20,15 @@ public:
     void search_adj(double rcut, int max_neighbor);
     //only for rcut < L/2, and L is equal in 3 dimensions
     void search_adj_faster(double rcut, int max_neighbor);
+    void cal_EkT(double sum_v2);
     void print_adj_list(int ia);
-    
+
+    //called before calculating Ep and Force, 
+    //update adj_dis_list according to the existing adj_list
+    void update_dis_list(void);
+    vec3 res_in_box(vec3 r);
+    vec3 shortest(vec3 r);
+
     int natom = 0;
     vec3 lattice_vec[3];
     vec3 R;
@@ -39,7 +46,6 @@ public:
 private:
     void randomv(double T_init);
     double v_fctr(double T_init);
-    void cal_EkT(double sum_v2);
 
 };
 #endif

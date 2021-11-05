@@ -6,9 +6,13 @@
 #include "LJ_pot.h"
 
 LJ_pot::LJ_pot() {}
-LJ_pot::LJ_pot(double sigma, double epsilon, double rcut) :sigma(sigma), epsilon(epsilon), rcut(rcut) {
-    double sr6 = pow(this->sigma/this->rcut, 6);
-    this->ene_shift = 2*this->epsilon*sr6*(sr6-1);
+LJ_pot::LJ_pot(int natom, double sigma, double epsilon, double rcut) :
+    sigma(sigma), epsilon(epsilon), rcut(rcut)
+{
+    double sr6 = pow(this->sigma / this->rcut, 6);
+    this->ene_shift = 2 * this->epsilon * sr6 * (sr6 - 1);
+    this->atom_force.resize(natom);
+    this->atom_pot.resize(natom);
 }
 LJ_pot::~LJ_pot(){}
 
@@ -63,20 +67,19 @@ vec3 LJ_pot::F_at(int ia, std::vector<int> adj_list_i, std::vector<vec3> adj_dis
 }
 void LJ_pot::cal_EpF(Geo geo)
 {
-    vec3 sum_all_f(0,0,0);
+    vec3 sum_all_f(0, 0, 0);
     this->Ep=0;
     for (int ia = 0;ia<geo.natom;++ia)
     {
-        this->atom_pot.push_back(V_at(ia, geo.adj_list[ia], geo.adj_dis_list[ia], this->rcut));
+        this->atom_pot[ia]=V_at(ia, geo.adj_list[ia], geo.adj_dis_list[ia], this->rcut);
         //this->Ep+=V_at(ia, geo.adj_list[ia], geo.adj_dis_list[ia], rcut);
         this->Ep+=this->atom_pot[ia];
-        this->atom_force.push_back(F_at(ia,  geo.adj_list[ia], geo.adj_dis_list[ia], this->rcut));
+        this->atom_force[ia]=F_at(ia,  geo.adj_list[ia], geo.adj_dis_list[ia], this->rcut);
         sum_all_f += atom_force[ia];
     }
-    assert(abs(sum_all_f.norm)<1e-5 );  //check force
+    assert(abs(sum_all_f.norm) < 1e-5);  //check force
     return;
 }
-
 void LJ_pot::print_EF(int nat, int precision)
 {
     std::ofstream ofs;

@@ -87,7 +87,7 @@ void Geo::read_geo(std::string& geo_in_file, int read_vel)
     this->adj_dis_list.resize(this->natom);
     
     // when ATOMIC_VELOCITY is not needed
-    if (type_read != "%ATOMIC_VELOCITY") return;
+    
 
     if (!read_vel)  //generate velo radomly
     {
@@ -96,7 +96,15 @@ void Geo::read_geo(std::string& geo_in_file, int read_vel)
         std::cout << "Generated velocity randomly." << std::endl;
         return;
     }
-
+    else
+    {
+        if (type_read != "%ATOMIC_VELOCITY")
+        {
+            std::cout << "Please provide '%ATOMIC_VELOCITY' in `geo_file` when `read_val` is 1." << std::endl;
+            exit(0);
+        }
+    }
+    //continue reading velocity
     double sum_v2 = 0;
     for (int i = 0;i < this->natom;++i)
     {
@@ -119,6 +127,11 @@ void Geo::read_geo(std::string& geo_in_file, int read_vel)
 
 void Geo::search_adj(double rcut, int max_neighbor)
 {
+    for (int i = 0;i < this->natom;++i)
+    {
+        this->adj_dis_list[i].clear();
+        this->adj_list[i].clear();
+    }
     for (int i = 0;i < this->natom;++i)
     {
         for (int j = i;j < this->natom;++j)
@@ -246,23 +259,15 @@ void Geo::search_adj_faster(double rcut, int max_neighbor)
 {
     for (int i = 0;i < this->natom;++i)
     {
+        this->adj_dis_list[i].clear();
+        this->adj_list[i].clear();
+    }
+    for (int i = 0;i < this->natom;++i)
+    {
         for (int j = i + 1;j < this->natom;++j)
         {
             double L = this->lattice_vec[0].norm;
-            vec3 nearest_dr = (this->atom_coords[i] - this->atom_coords[j]).vmodv(this->R);
-            //set x,y,z between -L/2 and L/2
-            if (abs(nearest_dr.x) > L / 2)
-            {
-                nearest_dr = vec3(nearest_dr.x + pow(-1, int(nearest_dr.x > 0)) * L, nearest_dr.y, nearest_dr.z);
-            }
-            if (abs(nearest_dr.y) > L / 2)
-            {
-                nearest_dr = vec3(nearest_dr.x, nearest_dr.y + pow(-1, int(nearest_dr.y > 0)) * L, nearest_dr.z);
-            }
-            if (abs(nearest_dr.z) > L / 2)
-            {
-                nearest_dr = vec3(nearest_dr.x, nearest_dr.y, nearest_dr.z + pow(-1, int(nearest_dr.z > 0)) * L);
-            }
+            vec3 nearest_dr = this->shortest(this->atom_coords[i] - this->atom_coords[j]);
             double min_distance = nearest_dr.norm;
             //judge if is adjacent atom
             if (min_distance <= rcut && this->adj_list[i].size() <= max_neighbor)
@@ -282,4 +287,34 @@ void Geo::search_adj_faster(double rcut, int max_neighbor)
         }
     }
     return;
+}
+void Geo::update_dis_list(void)
+{
+    for (int i = 0;i < this->natom;++i)
+    {
+        int index_j = 0;
+        for (auto j : this->adj_list[i])
+        {
+            //means all elements after j in adj_list[i] >= i, 
+            //and they will be calculated at adj_list[j] and so on
+            vec3 dr = this->shortest(this->atom_coords[i] - this->atom_coords[j]);
+            this->adj_dis_list[i][index_j] = dr;
+            index_j += 1;
+        }
+    }
+    return;
+}
+
+vec3 Geo::res_in_box(vec3 r)
+{
+    r = r.vmodv(this->R);
+    if (r.x < 0)r.x += this->R.x;
+    if (r.y < 0)r.y += this->R.y;
+    if (r.z < 0)r.z += this->R.z;
+    return r;
+}
+//res_in_box(dr+R/2)-R/2 is same as "shortest(dr, R)"
+vec3 Geo::shortest(vec3 r)
+{
+    return this->res_in_box(r + this->R / 2) - this->R / 2;
 }
