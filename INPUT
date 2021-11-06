@@ -16,3 +16,5 @@ dt      0.01    #ps
 steps_per_search    5   # how many steps between each update of adjacent list
 steps_per_print     2   # how many steps between each print 
 ensemble    NVE
+
+verlet_method   2

@@ -5,8 +5,8 @@
 class Geo
 {
 public:
-    const long double kb = 1.38064852;    //*1e-23, bolzmann constant
-    const long double NA = 6.02214086;      //*1e23
+    const long double kb = 1.380649;    //*1e-23, bolzmann constant
+    const long double NA = 6.02214076;      //*1e23
     const double Ap2ms = 100;  //Ang/ps -> m/s
     const double e = 1.602176634;   //1e-19 C
 
@@ -35,6 +35,7 @@ public:
     int precision = 0;  //decimal places
     std::vector<std::string> atom_types;
     std::vector<vec3> atom_coords;
+    std::vector<vec3>* r_t = &atom_coords; //pointer at `atom_coords` at time t
     std::vector<vec3> atom_v;   //Ang./ps
     std::vector<std::vector<int> > adj_list;//[atom_index][adj_index]
      //[atom_index][min_distance between (atom with atom_index) and (atom with adj_index)]

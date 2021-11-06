@@ -136,9 +136,8 @@ void Geo::search_adj(double rcut, int max_neighbor)
     {
         for (int j = i;j < this->natom;++j)
         {
-            vec3 nearest_dr = (this->atom_coords[i] - this->atom_coords[j]).vmodv(this->R);
+            vec3 nearest_dr = (this->r_t->at(i) - this->r_t->at(j)).vmodv(this->R);
             double min_distance = nearest_dr.norm;
-            //if (i == 11) std::cout << j + 1 << " " << 0 << " " <<0<< " " <<0<<" "<<min_distance<<std::endl;
             for (int fx = -1;fx <= 1;++fx)
             {
                 for (int fy = -1;fy <= 1;++fy)
@@ -146,12 +145,11 @@ void Geo::search_adj(double rcut, int max_neighbor)
                     for (int fz = -1;fz <= 1;++fz)
                     {
                         vec3 dR(R.x * (double)fx, R.y * (double)fy, R.z * (double)fz);
-                        vec3 dr = (this->atom_coords[i] - this->atom_coords[j] + dR).vmodv(R);  //caution: ri-rj
+                        vec3 dr = (this->r_t->at(i) - this->r_t->at(j) + dR).vmodv(R);  //caution: ri-rj
                         if (dr.norm < min_distance)
                         {
                             min_distance = dr.norm;
                             nearest_dr = dr;
-                            //if (i == 11) std::cout << j + 1 << " " << fx << " " <<fy<< " " <<fz<<" "<<min_distance<<std::endl;
                         }
                     }
                 }
@@ -188,9 +186,9 @@ void Geo::print_adj_list(int ia)
         ofs << std::setw(8) << this->adj_list[ia - 1][j] + 1 << " "
             //<< std::setw(15) << std::setprecision(this->precision) << this->adj_dis_list[ia - 1][j]
             //<< std::setw(15) << std::setprecision(this->precision) << this->adj_dis_list[ia - 1][j]/Bohr2A << std::endl;
-            << std::setw(15) << std::setprecision(this->precision) << this->atom_coords[this->adj_list[ia-1][j]].x <<" "
-            << std::setw(15) << std::setprecision(this->precision) << this->atom_coords[this->adj_list[ia-1][j]].y <<" "
-            << std::setw(15) << std::setprecision(this->precision) << this->atom_coords[this->adj_list[ia-1][j]].z <<std::endl;
+            << std::setw(15) << std::setprecision(this->precision) << this->r_t->at(this->adj_list[ia-1][j]).x <<" "
+            << std::setw(15) << std::setprecision(this->precision) << this->r_t->at(this->adj_list[ia-1][j]).y <<" "
+            << std::setw(15) << std::setprecision(this->precision) << this->r_t->at(this->adj_list[ia-1][j]).z <<std::endl;
     }
     ofs.close();
 }
@@ -267,7 +265,7 @@ void Geo::search_adj_faster(double rcut, int max_neighbor)
         for (int j = i + 1;j < this->natom;++j)
         {
             double L = this->lattice_vec[0].norm;
-            vec3 nearest_dr = this->shortest(this->atom_coords[i] - this->atom_coords[j]);
+            vec3 nearest_dr = this->shortest(this->r_t->at(i) - this->r_t->at(j));
             double min_distance = nearest_dr.norm;
             //judge if is adjacent atom
             if (min_distance <= rcut && this->adj_list[i].size() <= max_neighbor)
@@ -297,7 +295,7 @@ void Geo::update_dis_list(void)
         {
             //means all elements after j in adj_list[i] >= i, 
             //and they will be calculated at adj_list[j] and so on
-            vec3 dr = this->shortest(this->atom_coords[i] - this->atom_coords[j]);
+            vec3 dr = this->shortest(this->r_t->at(i) - this->r_t->at(j));
             this->adj_dis_list[i][index_j] = dr;
             index_j += 1;
         }

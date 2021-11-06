@@ -28,6 +28,7 @@ public:
     int steps_per_search = 5;   //howmany steps between each update of adjacent list
     int steps_per_print = 2;   // howmany steps between each print
     std::string ensemble = "NVE";
+    int verlet_method = 1;
 
 };
 #endif

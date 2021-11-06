@@ -40,7 +40,7 @@ void Input::read_input_file(std::string& input_file)
         if (tmp == "steps_per_print") ifs >> this->steps_per_print;
         if (tmp == "steps_per_search") ifs >> this->steps_per_search;
         if (tmp == "ensemble") ifs >> this->ensemble;
-        
+        if (tmp == "verlet_method") ifs >> this->verlet_method;
     }
     
 }

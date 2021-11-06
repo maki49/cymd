@@ -10,7 +10,7 @@ Print_step::~Print_step()
 
 void Print_step::print_info(int istep, bool append)
 {
-    std::cout << "STEP: " << istep << std::endl;
+    std::cout << "STEP " << istep << std::endl;
     this->print_position(istep, append);
     this->print_velocity(istep, append);
     this->print_force(istep, append);
@@ -31,9 +31,9 @@ void Print_step::print_position(int istep, bool append)
     for (int ia = 0; ia < this->geo_step.natom;++ia)
     {
         ofs << std::setprecision(geo_step.precision) << std::setw(4) << ia + 1
-            << std::setw(20) << this->geo_step.atom_coords[ia].x
-            << std::setw(20) << this->geo_step.atom_coords[ia].y
-            << std::setw(20) << this->geo_step.atom_coords[ia].z << std::endl;
+            << std::setw(20) << this->geo_step.r_t->at(ia).x
+            << std::setw(20) << this->geo_step.r_t->at(ia).y
+            << std::setw(20) << this->geo_step.r_t->at(ia).z << std::endl;
     }
     ofs << std::endl;
     ofs.close();

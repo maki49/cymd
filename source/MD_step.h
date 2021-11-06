@@ -12,7 +12,8 @@ public:
     MD_step(Input& input);
     ~MD_step();
     
-    void verlet(int istep, Geo& geo_step, LJ_pot& lj_step);
+    void verlet_1(int istep, Geo& geo_step, LJ_pot& lj_step);
+    void verlet_2(int istep, Geo& geo_step, LJ_pot& lj_step);
     void velocity_verlet(int istep, Geo& geo_step, LJ_pot& lj_step);
     void main_step(Geo& geo_step, LJ_pot& lj_step);
 private:
@@ -24,11 +25,14 @@ private:
     double rcut_neighbor;
     //rcut_potential is fixed in lj_step;
     int max_neighbor;
-
-    //temp r, v, f
-    std::vector<vec3> r_tmdt;
-    std::vector<vec3> r_tpdt;
-    std::vector<vec3> r_tpdt_nobox; //used to calculate v
-
+    int verlet_method = 1;
+    //temp r, v, f (maybe change these to pointers!)
+    //real memory
+    std::vector<vec3> r1;
+    std::vector<vec3> r2;
+    //pointers
+    std::vector<vec3>* r_tmdt = &r1;
+    std::vector<vec3>* r_tpdt = &r2;
+    void allocate(int natom);
 };
 #endif

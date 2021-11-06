@@ -36,7 +36,6 @@ int main(int argc, char* argv[])
     */
     
     //week 7: iteration
-    std::cout << input.nstep << std::endl;
     MD_step MS(input);
     MS.main_step(geo_init, lj_init);
 
