@@ -8,3 +8,5 @@ cd build
 make
 mv mymd ../..
 make clean
+cd ..
+rm -r build

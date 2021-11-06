@@ -17,4 +17,7 @@ steps_per_search    5   # how many steps between each update of adjacent list
 steps_per_print     2   # how many steps between each print 
 ensemble    NVE
 
-verlet_method   2
+verlet_method   2   # 0 and 1 for verlet, 2 for velocity verlet
+
+append  1
+

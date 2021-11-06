@@ -10,7 +10,6 @@ Print_step::~Print_step()
 
 void Print_step::print_info(int istep, bool append)
 {
-    std::cout << "STEP " << istep << std::endl;
     this->print_position(istep, append);
     this->print_velocity(istep, append);
     this->print_force(istep, append);
