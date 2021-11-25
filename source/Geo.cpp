@@ -249,7 +249,7 @@ void Geo::cal_EkT(double sum_v2)
     //1e4: (Ang/ps)^2 -> (m/s)^2
     this->temperature = (mass / NA *1e-3) * (sum_v2 * 1e4) / 3 / double(this->natom) / kb;
     this->Ek = 1.5 * double(this->natom) * kb * this->temperature / e *1e-4 ; //e: J -> eV; -4=-23+19
-    this->Ek = 0.5 * (mass / NA * 1e-3) * (sum_v2 * 1e4) / e * 1e-4;  //1e(23-19)
+    assert(this->Ek - 0.5 * (mass / NA * 1e-3) * (sum_v2 * 1e4) / e * 1e-4 < 1e-8);  //1e(23-19)
     return;
 }
 

@@ -29,6 +29,10 @@ public:
     int steps_per_print = 2;   // howmany steps between each print
     std::string ensemble = "NVE";
     int verlet_method = 1;
+    
+    //NVT paras
+    double thermo_temperature;
+    double nraise;
 
 };
 #endif

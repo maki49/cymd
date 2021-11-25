@@ -5,6 +5,8 @@
 #include "LJ_pot.h"
 #include "Print_step.h"
 #include "Input.h"
+#include <random>
+
 class MD_step
 {
 public:
@@ -25,6 +27,10 @@ private:
     int max_neighbor;
     int verlet_method = 1;
     bool append = true;
+    std::string ensemble;
+    double thermo_temperature=0.0;
+    double nraise;
+
     //temp r, v, f (maybe change these to pointers!)
     //real memory
     std::vector<vec3> r1;
@@ -38,6 +44,8 @@ private:
     void verlet_1(int istep, Geo& geo_step, LJ_pot& lj_step);
     void velocity_verlet_before(Geo& geo_step, LJ_pot& lj_step);
     void velocity_verlet_after(Geo& geo_step, LJ_pot& lj_step);
-    
+    void Anderson(Geo& geo_step, double sgm, 
+        std::default_random_engine& generator);
+
 };
 #endif

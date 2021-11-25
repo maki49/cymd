@@ -1,5 +1,8 @@
 #include "MD_step.h"
 #include "iostream"
+#include <time.h>
+#include <cmath>
+
 MD_step::MD_step() {}
 MD_step::MD_step(Input& input) :
     dt(input.dt),
@@ -9,8 +12,15 @@ MD_step::MD_step(Input& input) :
     rcut_neighbor(input.rcut_potential + input.extra_rcut_neighbor),
     max_neighbor(input.max_neighbor),
     verlet_method(input.verlet_method),
-    append(input.append)
-{};
+    append(input.append),
+    ensemble(input.ensemble)
+{
+    if (ensemble == "NVT")
+    {
+        this->thermo_temperature = input.thermo_temperature;
+        this->nraise = input.nraise;
+    }
+};
 MD_step::~MD_step() {}
 
 void MD_step::allocate(int natom)
@@ -36,7 +46,7 @@ void MD_step::allocate(int natom)
 void MD_step::verlet_1(int istep, Geo& geo_step, LJ_pot& lj_step)
 {
     double dt2 = dt * dt;
-    double m = geo_step.mass * 1e-3 / geo_step.e / geo_step.NA; // g/mol -> eV*ps^2/Ang.^2
+    //double m = geo_step.mass * 1e-3 / geo_step.e / geo_step.NA; // g/mol -> eV*ps^2/Ang.^2
     if (istep == 0)
     {
         for (int ia = 0;ia < geo_step.natom;++ia)
@@ -122,12 +132,64 @@ void MD_step::velocity_verlet_after(Geo& geo_step, LJ_pot& lj_step)
     return;
 }
 
+void MD_step::Anderson(Geo& geo_step, double sgm, 
+    std::default_random_engine& generator)
+{
+    auto gaussrand = [&]() ->double
+    {   //std-lib
+        std::normal_distribution<double> distribution(0, sgm);
+        return distribution(generator);
+    };
+
+    auto gaussrand_bm = [&]() ->double
+    {   //Box-Muller Algorithm
+        double u1 = rand() / double(RAND_MAX);
+        double u2 = rand() / double(RAND_MAX);
+        return sqrt(-2 * log(u1)) * sin(2 * M_PI * u2) * sgm;
+    };
+
+    auto gaussrand_1 = [&]() ->double
+    {
+        double S=0.0;
+        double v1, v2, u1, u2;
+        while (S>=1||S==0.0){
+            u1 = rand() / double(RAND_MAX);
+            u2 = rand() / double(RAND_MAX);
+            v1=2*u1-1;
+            v2=2*u2-1;
+            S=v1*v1+v2*v2;
+        }
+        double X=v1*sqrt(-2*log(S)/S);
+        return X*sgm;
+    };
+
+    for (int i = 0;i < geo_step.natom;++i)
+    {
+        if ((double(rand()) / double(RAND_MAX)) < 1.0 / nraise)
+        {
+            vec3 v(gaussrand(), gaussrand(), gaussrand()); 
+            //vec3 v(gaussrand_bm(), gaussrand_bm(), gaussrand_bm()); 
+            //vec3 v(gaussrand_1(), gaussrand_1(), gaussrand_1()); 
+            geo_step.atom_v[i] = v;
+        }
+    }
+    return;
+}
+
 void MD_step::main_step(Geo& geo_step, LJ_pot& lj_step)
 {
     this->allocate(geo_step.natom); //allocate memory 
     //mass: g/mol -> eV*ps^2/Ang.^2
     this->m = geo_step.mass * 1e-3 / geo_step.e / geo_step.NA;
-    
+    //set sigma for NVE
+    double sgm_ads = sqrt(geo_step.kb * this->thermo_temperature
+        / (geo_step.mass * 1e-3 / geo_step.NA))*1e-2; 
+
+    //random seed
+    //( Caution: FAKE random number, set seed INITIALLY !! )
+    srand((unsigned)time(NULL));
+    std::default_random_engine generator(time(NULL));
+
     std::cout << "===== MD start ======" << std::endl;
     clock_t start, end;
     start = clock();
@@ -141,7 +203,8 @@ void MD_step::main_step(Geo& geo_step, LJ_pot& lj_step)
         //1. update adj_list of current step (with r_t)
         if (istep % this->steps_per_search == 0)
         {
-            geo_step.search_adj_faster(this->rcut_neighbor, max_neighbor);geo_step.print_adj_list(12);
+            geo_step.search_adj_faster(this->rcut_neighbor, max_neighbor);
+            //geo_step.print_adj_list(12);
         }
         else//only update adj_dis_list
             geo_step.update_dis_list();
@@ -150,7 +213,7 @@ void MD_step::main_step(Geo& geo_step, LJ_pot& lj_step)
         lj_step.cal_EpF(geo_step);
 
         //3. verlet: calculate r_t+dt, v_t and Ek;
-        //velocity verlet: update v_t after f_t
+        //velocity verlet: update v_t after f_t, and calculate Ek
         switch (this->verlet_method)
         {
         case 0:
@@ -188,6 +251,10 @@ void MD_step::main_step(Geo& geo_step, LJ_pot& lj_step)
             this->r_tpdt = tmp;
             break;
         }
+
+        // 6. collision, if NVT
+        if (this->ensemble == "NVT")
+            this->Anderson(geo_step, sgm_ads, generator);
     }
     
     end = clock();
@@ -196,4 +263,5 @@ void MD_step::main_step(Geo& geo_step, LJ_pot& lj_step)
         << " seconds for " << this->nstep << " steps." << std::endl;
     return;
 }
+
 

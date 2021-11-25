@@ -5,8 +5,8 @@
 class Geo
 {
 public:
-    const long double kb = 1.380649;    //*1e-23, bolzmann constant
-    const long double NA = 6.02214076;      //*1e23
+    const double kb = 1.380649;    //*1e-23, bolzmann constant
+    const double NA = 6.02214076;      //*1e23
     const double Ap2ms = 100;  //Ang/ps -> m/s
     const double e = 1.602176634;   //1e-19 C
 

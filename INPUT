@@ -11,11 +11,15 @@ mass 4.0026  #g/mol
 read_vel 1
 init_temperature 100    # for generating initial velocity when "read_vel" is 0
 
-nstep   100
+nstep   500
 dt      0.01    #ps
 steps_per_search    5   # how many steps between each update of adjacent list
 steps_per_print     2   # how many steps between each print 
-ensemble    NVE
+ensemble    NVT
+
+## NVT-paras
+thermo_temperature 200  #K
+nraise 70   #1/vdt
 
 verlet_method   2   # 0 and 1 for verlet, 2 for velocity verlet
 
