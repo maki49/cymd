@@ -30,11 +30,14 @@ private:
     std::string ensemble;
     double thermo_temperature=0.0;
     double nraise;
+    bool cal_msd=false;
+    int msd_print_interval;
 
     //temp r, v, f (maybe change these to pointers!)
     //real memory
     std::vector<vec3> r1;
     std::vector<vec3> r2;
+    std::vector<vec3> atom_msd;
     //pointers
     std::vector<vec3>* r_tmdt = &r1;
     std::vector<vec3>* r_tpdt = &r2;
@@ -46,6 +49,6 @@ private:
     void velocity_verlet_after(Geo& geo_step, LJ_pot& lj_step);
     void Anderson(Geo& geo_step, double sgm, 
         std::default_random_engine& generator);
-
+    void print_msd(int istep, int natom, int precision);
 };
 #endif

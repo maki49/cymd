@@ -43,7 +43,8 @@ void Input::read_input_file(std::string& input_file)
         if (tmp == "thermo_temperature") ifs >> this->thermo_temperature;
         if (tmp == "nraise") ifs >> this->nraise;
         if (tmp == "verlet_method") ifs >> this->verlet_method;
-        
+        if (tmp == "cal_msd") ifs >> this->cal_msd;
+        if (tmp == "msd_print_interval") ifs >> this->msd_print_interval;
     }
     
 }

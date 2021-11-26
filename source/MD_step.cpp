@@ -2,6 +2,7 @@
 #include "iostream"
 #include <time.h>
 #include <cmath>
+#include <iomanip>
 
 MD_step::MD_step() {}
 MD_step::MD_step(Input& input) :
@@ -13,7 +14,9 @@ MD_step::MD_step(Input& input) :
     max_neighbor(input.max_neighbor),
     verlet_method(input.verlet_method),
     append(input.append),
-    ensemble(input.ensemble)
+    ensemble(input.ensemble),
+    cal_msd(input.cal_msd),
+    msd_print_interval(input.msd_print_interval)
 {
     if (ensemble == "NVT")
     {
@@ -39,6 +42,17 @@ void MD_step::allocate(int natom)
     case 2:
         std::cout << "Algorithm: Velocity Verlet" << std::endl;
         break;
+    }
+
+    if (this->cal_msd)
+    {
+        vec3 v0(0,0,0);
+        this->atom_msd.resize(natom, v0);
+
+        std::ofstream ofs;
+        ofs.open("msd.txt");
+        ofs<<std::setw(4)<<"t/ps"<<std::setw(20)<<"msd (Ang.^2)"<< std::endl;
+        ofs.close();
     }
     return;
 }
@@ -114,8 +128,11 @@ void MD_step::velocity_verlet_before(Geo& geo_step, LJ_pot& lj_step)
     double dt2 = dt * dt;
     for (int ia = 0;ia < geo_step.natom;++ia)
     {
-        geo_step.r_t->at(ia) += geo_step.atom_v[ia] * dt
+        vec3 dr = geo_step.atom_v[ia] * dt
             + lj_step.atom_force[ia] / 2 / m * dt2;
+        geo_step.r_t->at(ia) += dr;
+        if(this->cal_msd)
+            this->atom_msd.at(ia)+=geo_step.shortest(dr);
         geo_step.atom_v[ia] += lj_step.atom_force[ia] / 2 / m * dt;
     }
     return;
@@ -255,6 +272,10 @@ void MD_step::main_step(Geo& geo_step, LJ_pot& lj_step)
         // 6. collision, if NVT
         if (this->ensemble == "NVT")
             this->Anderson(geo_step, sgm_ads, generator);
+
+        //7. print msd
+        if (this->cal_msd && istep%this->msd_print_interval==0)
+            this->print_msd(istep, geo_step.natom, geo_step.precision);
     }
     
     end = clock();
@@ -265,3 +286,16 @@ void MD_step::main_step(Geo& geo_step, LJ_pot& lj_step)
 }
 
 
+void MD_step::print_msd(int istep, int natom, int precision)
+{
+    std::ofstream ofs;
+    ofs.open("msd.txt", std::ios_base::app);
+    double sum_msd=0.0;
+    for (int ia = 0; ia < natom;++ia)
+    {
+        sum_msd += this->atom_msd[ia].norm * this->atom_msd[ia].norm;
+    }
+    ofs << std::setw(4) << istep*this->dt<< std::setw(20) << sum_msd/natom << std::endl;
+    ofs.close();
+    return;
+}

@@ -33,6 +33,8 @@ public:
     //NVT paras
     double thermo_temperature;
     double nraise;
+    bool cal_msd=false;
+    int msd_print_interval;
 
 };
 #endif
