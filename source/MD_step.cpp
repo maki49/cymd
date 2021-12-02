@@ -68,7 +68,7 @@ void MD_step::verlet_1(int istep, Geo& geo_step, LJ_pot& lj_step)
             this->r_tpdt->at(ia) =
                 geo_step.res_in_box(geo_step.r_t->at(ia)
                 + geo_step.atom_v[ia] * dt
-                + lj_step.atom_force[ia] * 0.5 / m * dt2);
+                + lj_step.atom_force[ia] * 0.5 / m * dt2, geo_step.R);
         }
     }
     else
@@ -79,11 +79,12 @@ void MD_step::verlet_1(int istep, Geo& geo_step, LJ_pot& lj_step)
         {
             this->r_tpdt->at(ia) = geo_step.r_t->at(ia) * 2
                 - this->r_tmdt->at(ia) + lj_step.atom_force[ia] / m * dt2;
-            vec3 v = geo_step.shortest(this->r_tpdt->at(ia) - this->r_tmdt->at(ia)) / 2 / dt;
+            vec3 v = geo_step.shortest(
+                this->r_tpdt->at(ia) - this->r_tmdt->at(ia), geo_step.R) / 2 / dt;
             sum_v2 += v.norm * v.norm;  //(Ang/ps)^2
             //nvc += v;
             geo_step.atom_v[ia] = v;
-            r_tpdt->at(ia) = geo_step.res_in_box(r_tpdt->at(ia));
+            r_tpdt->at(ia) = geo_step.res_in_box(r_tpdt->at(ia), geo_step.R);
         }
         //std::cout <<nvc.norm << std::endl;
         geo_step.cal_EkT(sum_v2);
@@ -101,7 +102,8 @@ void MD_step::verlet_0(int istep, Geo& geo_step, LJ_pot& lj_step)
             this->r_tmdt->at(ia) =//actually tpdt
                 geo_step.res_in_box(geo_step.r_t->at(ia)
                 + geo_step.atom_v[ia] * dt
-                + lj_step.atom_force[ia] * 0.5 / m * dt2);
+                    + lj_step.atom_force[ia] * 0.5 / m * dt2,
+                    geo_step.R);
         }
     }
     else
@@ -109,13 +111,14 @@ void MD_step::verlet_0(int istep, Geo& geo_step, LJ_pot& lj_step)
         double sum_v2 = 0.0;
         for (int ia = 0;ia < geo_step.natom;++ia)
         {
-            vec3 v = geo_step.shortest(geo_step.r_t->at(ia) - this->r_tmdt->at(ia)) / dt
+            vec3 v = geo_step.shortest(
+                geo_step.r_t->at(ia) - this->r_tmdt->at(ia), geo_step.R) / dt
                 + lj_step.atom_force[ia] / m / 2 * dt;
             sum_v2 += v.norm * v.norm;  //(Ang/ps)^2
             geo_step.atom_v[ia] = v;
             this->r_tmdt->at(ia) = geo_step.res_in_box(//actually tpdt
                 geo_step.r_t->at(ia) * 2 - this->r_tmdt->at(ia)
-                + lj_step.atom_force[ia] / m * dt2);
+                + lj_step.atom_force[ia] / m * dt2, geo_step.R);
         }
         geo_step.cal_EkT(sum_v2);
     }
@@ -132,7 +135,7 @@ void MD_step::velocity_verlet_before(Geo& geo_step, LJ_pot& lj_step)
             + lj_step.atom_force[ia] / 2 / m * dt2;
         geo_step.r_t->at(ia) += dr;
         if(this->cal_msd)
-            this->atom_msd.at(ia)+=geo_step.shortest(dr);
+            this->atom_msd.at(ia)+=geo_step.shortest(dr, geo_step.R);
         geo_step.atom_v[ia] += lj_step.atom_force[ia] / 2 / m * dt;
     }
     return;
@@ -223,8 +226,8 @@ void MD_step::main_step(Geo& geo_step, LJ_pot& lj_step)
             geo_step.search_adj_faster(this->rcut_neighbor, max_neighbor);
             //geo_step.print_adj_list(12);
         }
-        else//only update adj_dis_list
-            geo_step.update_dis_list();
+        //else//only update adj_dis_list
+            //geo_step.update_dis_list();
         
         //2. cal force(f_t) based on geo of current step
         lj_step.cal_EpF(geo_step);

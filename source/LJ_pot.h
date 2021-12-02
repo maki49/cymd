@@ -16,9 +16,10 @@ public:
     std::vector<vec3> atom_force;
     double ene_shift;   //u(rcut)
     double rcut;    //rcut_potential
+    vec3 R; //lattice constant
 
     LJ_pot();
-    LJ_pot(int natom, double sigma, double epsilon, double rcut);
+    LJ_pot(int natom, double sigma, double epsilon, double rcut, vec3 R);
     ~LJ_pot();
 
     void cal_EpF(Geo geo);
@@ -28,8 +29,8 @@ public:
 private:
     double v_ij(vec3 r12, double rcut);
 
-    double V_at(int ia, std::vector<int> adj_list_i, std::vector<vec3> adj_dis_list_i, double rcut);
-    vec3 F_at(int ia, std::vector<int> adj_list_i, std::vector<vec3> adj_dis_list_i, double rcut);
+    double V_at(int ia, std::vector<int> adj_list_i, std::vector<vec3>* atom_r, double rcut);
+    vec3 F_at(int ia, std::vector<int> adj_list_i, std::vector<vec3>* atom_r, double rcut);
 
 };
 #endif

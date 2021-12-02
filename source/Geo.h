@@ -24,10 +24,10 @@ public:
     void print_adj_list(int ia);
 
     //called before calculating Ep and Force, 
-    //update adj_dis_list according to the existing adj_list
+    //update  according to the existing adj_list
     void update_dis_list(void);
-    vec3 res_in_box(vec3 r);
-    vec3 shortest(vec3 r);
+    static vec3 res_in_box(vec3 r, vec3 R);
+    static vec3 shortest(vec3 r, vec3 R);
 
     int natom = 0;
     vec3 lattice_vec[3];
@@ -39,7 +39,7 @@ public:
     std::vector<vec3> atom_v;   //Ang./ps
     std::vector<std::vector<int> > adj_list;//[atom_index][adj_index]
      //[atom_index][min_distance between (atom with atom_index) and (atom with adj_index)]
-    std::vector<std::vector<vec3> > adj_dis_list;
+    //std::vector<std::vector<vec3> > adj_dis_list;
     double mass;
     double Ek; //kinetic energy
     double temperature;

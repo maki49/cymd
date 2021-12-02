@@ -19,7 +19,7 @@ int main(int argc, char* argv[])
     geo_init.read_geo(input.geo_in_file, input.read_vel);  //read coord and velocity
     
     LJ_pot lj_init(geo_init.natom,
-        input.sigma, input.epsilon, input.rcut_potential);
+        input.sigma, input.epsilon, input.rcut_potential,geo_init.R);
     
     //week 7, 8: iteration
     MD_step MS(input);

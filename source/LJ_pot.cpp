@@ -6,8 +6,8 @@
 #include "LJ_pot.h"
 
 LJ_pot::LJ_pot() {}
-LJ_pot::LJ_pot(int natom, double sigma, double epsilon, double rcut) :
-    sigma(sigma), epsilon(epsilon), rcut(rcut)
+LJ_pot::LJ_pot(int natom, double sigma, double epsilon, double rcut, vec3 R) :
+    sigma(sigma), epsilon(epsilon), rcut(rcut), R(R)
 {
     double sr6 = pow(this->sigma / this->rcut, 6);
     this->ene_shift = 2 * this->epsilon * sr6 * (sr6 - 1);
@@ -46,22 +46,22 @@ vec3 LJ_pot::f_ij(vec3 r12, double rcut)//force from atom j to atom i
 }
 
 //calculate V at each atom's position 
-double LJ_pot::V_at(int ia, std::vector<int> adj_list_i, std::vector<vec3> adj_dis_list_i, double rcut)
+double LJ_pot::V_at(int ia, std::vector<int> adj_list_i, std::vector<vec3>* atom_r, double rcut)
 {
     double v = 0;
     for (int j =0;j<adj_list_i.size();++j)
     {
-        v += this->v_ij(adj_dis_list_i[j], rcut);
+        v += this->v_ij(Geo::shortest(atom_r->at(ia)-atom_r->at(adj_list_i[j]), R), rcut);
     }
     return v;
 }
 //calculate F of each atom
-vec3 LJ_pot::F_at(int ia, std::vector<int> adj_list_i, std::vector<vec3> adj_dis_list_i, double rcut)
+vec3 LJ_pot::F_at(int ia, std::vector<int> adj_list_i, std::vector<vec3>* atom_r, double rcut)
 {
     vec3 f(0,0,0);
     for (int j =0;j<adj_list_i.size();++j)
     {
-        f += this->f_ij(adj_dis_list_i[j], rcut);
+        f += this->f_ij(Geo::shortest(atom_r->at(ia) - atom_r->at(adj_list_i[j]), R), rcut);
     }
     return f;
 }
@@ -71,10 +71,10 @@ void LJ_pot::cal_EpF(Geo geo)
     this->Ep=0;
     for (int ia = 0;ia<geo.natom;++ia)
     {
-        this->atom_pot[ia]=V_at(ia, geo.adj_list[ia], geo.adj_dis_list[ia], this->rcut);
+        this->atom_pot[ia]=V_at(ia, geo.adj_list[ia], geo.r_t, this->rcut);
         //this->Ep+=V_at(ia, geo.adj_list[ia], geo.adj_dis_list[ia], rcut);
         this->Ep+=this->atom_pot[ia];
-        this->atom_force[ia]=F_at(ia,  geo.adj_list[ia], geo.adj_dis_list[ia], this->rcut);
+        this->atom_force[ia]=F_at(ia,  geo.adj_list[ia], geo.r_t, this->rcut);
         sum_all_f += atom_force[ia];
     }
     assert(abs(sum_all_f.norm) < 1e-5);  //check force
