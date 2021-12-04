@@ -76,7 +76,7 @@ void Geo::read_geo(std::string& geo_in_file, int read_vel)
     {
         ifs >> type_read;
         //find precision
-        if (type_read == "%ATOMIC_VELOCITY") break;
+        if (type_read == "%ATOMIC_VELOCITY" || !ifs.good()) break;
         ifs >> x_read >> y_read >> z_read;
         this->atom_types.push_back(type_read);
         vec3 vec_read(x_read, y_read, z_read);

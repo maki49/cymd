@@ -45,6 +45,12 @@ void Input::read_input_file(std::string& input_file)
         if (tmp == "verlet_method") ifs >> this->verlet_method;
         if (tmp == "cal_msd") ifs >> this->cal_msd;
         if (tmp == "msd_print_interval") ifs >> this->msd_print_interval;
+        if (tmp == "cal_rdf") ifs >> this->cal_rdf;
+        if (tmp == "rdf_rcut") ifs >> this->rdf_rcut;
+        if (tmp == "rdf_dr") ifs >> this->rdf_dr;
+        if (tmp == "rdf_start_step") ifs >> this->rdf_start_step;
+        if (tmp == "rdf_end_step") ifs >> this->rdf_end_step;
+        if (tmp == "rdf_interval") ifs >> this->rdf_interval;
     }
     
 }

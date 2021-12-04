@@ -33,15 +33,27 @@ private:
     bool cal_msd=false;
     int msd_print_interval;
 
+    bool cal_rdf = false;
+    double rdf_rcut;
+    double rdf_dr;
+    int rdf_start_step;
+    int rdf_end_step;
+    int rdf_interval;
+    
+    //number of steps in which rdf is calculated
+    int rdf_ncal = 0;
+    
     //temp r, v, f (maybe change these to pointers!)
     //real memory
     std::vector<vec3> r1;
     std::vector<vec3> r2;
     std::vector<vec3> atom_msd;
+    std::vector<double> nshell_rdf; //total rdf for all steps calculated
     //pointers
     std::vector<vec3>* r_tmdt = &r1;
     std::vector<vec3>* r_tpdt = &r2;
-    
+
+
     void allocate(int natom);
     void verlet_0(int istep, Geo& geo_step, LJ_pot& lj_step);
     void verlet_1(int istep, Geo& geo_step, LJ_pot& lj_step);
@@ -50,5 +62,7 @@ private:
     void Anderson(Geo& geo_step, double sgm, 
         std::default_random_engine& generator);
     void print_msd(int istep, int natom, int precision);
+    void rdf(Geo& geo_step);
+    void print_rdf(double rho);
 };
 #endif

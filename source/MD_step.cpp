@@ -3,6 +3,7 @@
 #include <time.h>
 #include <cmath>
 #include <iomanip>
+#include <assert.h>
 
 MD_step::MD_step() {}
 MD_step::MD_step(Input& input) :
@@ -16,7 +17,13 @@ MD_step::MD_step(Input& input) :
     append(input.append),
     ensemble(input.ensemble),
     cal_msd(input.cal_msd),
-    msd_print_interval(input.msd_print_interval)
+    msd_print_interval(input.msd_print_interval),
+    cal_rdf(input.cal_rdf),
+    rdf_rcut(input.rdf_rcut),
+    rdf_dr(input.rdf_dr),
+    rdf_start_step(input.rdf_start_step),
+    rdf_end_step(input.rdf_end_step),
+    rdf_interval(input.rdf_interval)
 {
     if (ensemble == "NVT")
     {
@@ -54,6 +61,14 @@ void MD_step::allocate(int natom)
         ofs<<std::setw(4)<<"t/ps"<<std::setw(20)<<"msd (Ang.^2)"<< std::endl;
         ofs.close();
     }
+
+    if (this->cal_rdf)
+    {
+        assert(this->rdf_dr > 1e-5);
+        this->nshell_rdf.resize((int)(this->rdf_rcut / this->rdf_dr) + 1, 0.0);
+    }
+        
+
     return;
 }
 
@@ -276,15 +291,25 @@ void MD_step::main_step(Geo& geo_step, LJ_pot& lj_step)
         if (this->ensemble == "NVT")
             this->Anderson(geo_step, sgm_ads, generator);
 
-        //7. print msd
+        //7. msd(if needed)
         if (this->cal_msd && istep%this->msd_print_interval==0)
             this->print_msd(istep, geo_step.natom, geo_step.precision);
+
+        //8. rdf(if needed)
+        if (this->cal_rdf && istep >= this->rdf_start_step &&
+            istep <= this->rdf_end_step && istep % rdf_interval == 0)
+            this->rdf(geo_step);
     }
     
     end = clock();
     std::cout << "=====================" << std::endl;
     std::cout << "MD finished in  " << double(end - start) / CLOCKS_PER_SEC
         << " seconds for " << this->nstep << " steps." << std::endl;
+    
+    if (this->cal_rdf)
+        this->print_rdf((double)geo_step.natom
+            / (geo_step.R.x * geo_step.R.y * geo_step.R.z));
+
     return;
 }
 
@@ -293,12 +318,50 @@ void MD_step::print_msd(int istep, int natom, int precision)
 {
     std::ofstream ofs;
     ofs.open("msd.txt", std::ios_base::app);
-    double sum_msd=0.0;
+    double sum_msd = 0.0;
     for (int ia = 0; ia < natom;++ia)
     {
         sum_msd += this->atom_msd[ia].norm * this->atom_msd[ia].norm;
     }
-    ofs << std::setw(4) << istep*this->dt<< std::setw(20) << sum_msd/natom << std::endl;
+    ofs << std::setw(4) << istep * this->dt << std::setw(20)
+        << std::setprecision(precision) << sum_msd / natom << std::endl;
+    ofs.close();
+    return;
+}
+
+void MD_step::rdf(Geo& geo_step)
+{
+    //average of each atom
+    double invnatom = 1.0 / double(geo_step.natom);
+    //if rdf_rcut < rcut_adj
+    for (int ia = 0;ia < geo_step.natom;++ia)
+    {
+        for (auto ja : geo_step.adj_list[ia])
+        {
+            vec3 rij = Geo::shortest(geo_step.r_t->at(ia)
+                - geo_step.r_t->at(ja), geo_step.R);
+            if (rij.norm < this->rdf_rcut)
+                this->nshell_rdf.at((int)(rij.norm / this->rdf_dr))+=invnatom;
+        }
+    }
+    this->rdf_ncal += 1;
+    return;
+}
+
+void MD_step::print_rdf(double rho)
+{
+    std::cout << rho << std::endl;
+    std::ofstream ofs;
+    ofs.open("rdf.txt");
+    for (int ir = 0;ir < this->nshell_rdf.size()-1;++ir)
+    {
+        double r = (double)ir * this->rdf_dr + 0.5 * this->rdf_dr;
+        double dv = 4 * M_PI * r * r * this->rdf_dr;
+        ofs << std::setw(4) << std::setprecision(2) << r
+            << std::setw(20) << std::setprecision(6)
+            << (double)nshell_rdf.at(ir) / dv / rho
+            / (double)this->rdf_ncal << std::endl;
+    }
     ofs.close();
     return;
 }

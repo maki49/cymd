@@ -36,5 +36,12 @@ public:
     bool cal_msd=false;
     int msd_print_interval;
 
+    bool cal_rdf = false;
+    double rdf_rcut;
+    double rdf_dr;
+    int rdf_start_step;
+    int rdf_end_step;
+    int rdf_interval;
+
 };
 #endif
