@@ -1,4 +1,4 @@
-geo_in_file	./geo5.in
+geo_in_file	./geo.in
 
 rcut_potential	8.5
 extra_rcut_neighbor	2
@@ -7,14 +7,14 @@ max_neighbor	250
 epsilon 0.01062 #eV
 sigma 3.360 #Angstrom
 
-mass 39.948  #g/mol
+mass 4.0026  #g/mol
 read_vel 0  # 0 for randomly initialize velocity
-init_temperature 100    # for generating initial velocity when "read_vel" is 0
+init_temperature 110    # for generating initial velocity when "read_vel" is 0
 
-nstep   10000
+nstep   200
 dt      0.01    #ps
 steps_per_search    5   # how many steps between each update of adjacent list
-steps_per_print     200   # how many steps between each print 
+steps_per_print     10   # how many steps between each print 
 ensemble    NVT
 
 ## NVT-paras    (only support velocity_verlet)
@@ -25,7 +25,7 @@ msd_print_interval  10  # how many steps between each print of msd
 
 verlet_method   2   # 0 and 1 for verlet, 2 for velocity verlet
 
-cal_rdf 1
+cal_rdf 0 
 rdf_rcut    8.5 #Ang.
 rdf_dr  0.01    #Ang.
 rdf_start_step 2000 
