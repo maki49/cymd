@@ -23,7 +23,7 @@ int main(int argc, char* argv[])
     
     //week 7, 8: iteration
     MD_step MS(input);
-    MS.main_step(geo_init, lj_init);
+    MS.main_step(input, geo_init, lj_init);
 
     return 0;
 }

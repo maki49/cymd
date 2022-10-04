@@ -51,6 +51,7 @@ void Input::read_input_file(std::string& input_file)
         if (tmp == "rdf_start_step") ifs >> this->rdf_start_step;
         if (tmp == "rdf_end_step") ifs >> this->rdf_end_step;
         if (tmp == "rdf_interval") ifs >> this->rdf_interval;
+        if (tmp == "test_instable") ifs >> this->test_instable;
     }
     
 }

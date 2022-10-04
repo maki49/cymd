@@ -43,5 +43,7 @@ public:
     int rdf_end_step;
     int rdf_interval;
 
+    bool test_instable=false;
+
 };
 #endif

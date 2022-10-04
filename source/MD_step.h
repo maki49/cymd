@@ -14,7 +14,7 @@ public:
     MD_step(Input& input);
     ~MD_step();
 
-    void main_step(Geo& geo_step, LJ_pot& lj_step);
+    void main_step(Input& input, Geo& geo_init, LJ_pot& lj_init);
     
 private:
     double dt;
@@ -39,6 +39,7 @@ private:
     int rdf_start_step;
     int rdf_end_step;
     int rdf_interval;
+    bool test_instable=false;
     
     //number of steps in which rdf is calculated
     int rdf_ncal = 0;

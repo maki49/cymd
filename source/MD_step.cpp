@@ -23,7 +23,8 @@ MD_step::MD_step(Input& input) :
     rdf_dr(input.rdf_dr),
     rdf_start_step(input.rdf_start_step),
     rdf_end_step(input.rdf_end_step),
-    rdf_interval(input.rdf_interval)
+    rdf_interval(input.rdf_interval),
+    test_instable(input.test_instable)
 {
     if (ensemble == "NVT")
     {
@@ -211,14 +212,23 @@ void MD_step::Anderson(Geo& geo_step, double sgm,
     return;
 }
 
-void MD_step::main_step(Geo& geo_step, LJ_pot& lj_step)
+void MD_step::main_step(Input& input, Geo& geo_init, LJ_pot& lj_init)
 {
-    this->allocate(geo_step.natom); //allocate memory 
+    this->allocate(geo_init.natom); //allocate memory 
     //mass: g/mol -> eV*ps^2/Ang.^2
-    this->m = geo_step.mass * 1e-3 / geo_step.e / geo_step.NA;
+    this->m = geo_init.mass * 1e-3 / geo_init.e / geo_init.NA;
     //set sigma for NVE
-    double sgm_ads = sqrt(geo_step.kb * this->thermo_temperature
-        / (geo_step.mass * 1e-3 / geo_step.NA))*1e-2; 
+    double sgm_ads = sqrt(geo_init.kb * this->thermo_temperature
+        / (geo_init.mass * 1e-3 / geo_init.NA))*1e-2; 
+
+    //Lyapunov instablity
+    Geo geo_new(input.mass, input.init_temperature);
+    LJ_pot lj_new(geo_init.natom,
+        input.sigma, input.epsilon, input.rcut_potential,geo_init.R);
+    if(this->test_instable){
+        geo_new.read_geo(input.geo_in_file, input.read_vel);  //read coord and velocity
+        geo_new.atom_coords[0].x+=1e-10;
+    }
 
     //random seed
     //( Caution: FAKE random number, set seed INITIALLY !! )
@@ -231,74 +241,101 @@ void MD_step::main_step(Geo& geo_step, LJ_pot& lj_step)
     
     for (int istep = 0; istep <= this->nstep;++istep)
     {
-        //0. for velocity verlet: update r_t and v_t before f_t
-        if (this->verlet_method == 2 && istep > 0)
-            this->velocity_verlet_before(geo_step, lj_step);
-
-        //1. update adj_list of current step (with r_t)
-        if (istep % this->steps_per_search == 0)
+        auto single_step = [&, this] (Geo& geo_step, LJ_pot& lj_step)
         {
-            geo_step.search_adj_faster(this->rcut_neighbor, max_neighbor);
-            //geo_step.print_adj_list(12);
-        }
-        //else//only update adj_dis_list
-            //geo_step.update_dis_list();
-        
-        //2. cal force(f_t) based on geo of current step
-        lj_step.cal_EpF(geo_step);
+                        //0. for velocity verlet: update r_t and v_t before f_t
+            if (this->verlet_method == 2 && istep > 0)
+                this->velocity_verlet_before(geo_step, lj_step);
 
-        //3. verlet: calculate r_t+dt, v_t and Ek;
-        //velocity verlet: update v_t after f_t, and calculate Ek
-        switch (this->verlet_method)
-        {
-        case 0:
-            this->verlet_0(istep, geo_step, lj_step);
-            break;
-        case 1:
-            this->verlet_1(istep, geo_step, lj_step);
-            break;
-        case 2:
-            if (istep > 0)
-                this->velocity_verlet_after(geo_step, lj_step);
-            break;
-        }
-        //add velo-verlet here
-        
+            //1. update adj_list of current step (with r_t)
+            if (istep % this->steps_per_search == 0)
+            {
+                geo_step.search_adj_faster(this->rcut_neighbor, max_neighbor);
+                //geo_step.print_adj_list(12);
+            }
+            //else//only update adj_dis_list
+                //geo_step.update_dis_list();
+            
+            //2. cal force(f_t) based on geo of current step
+            lj_step.cal_EpF(geo_step);
+
+            //3. verlet: calculate r_t+dt, v_t and Ek;
+            //velocity verlet: update v_t after f_t, and calculate Ek
+            switch (this->verlet_method)
+            {
+            case 0:
+                this->verlet_0(istep, geo_step, lj_step);
+                break;
+            case 1:
+                this->verlet_1(istep, geo_step, lj_step);
+                break;
+            case 2:
+            
+                if (istep > 0)
+                    this->velocity_verlet_after(geo_step, lj_step);
+                break;
+            }
+            //add velo-verlet here
+            
+            //4. print info(r,v,f) of current step 
         //4. print info(r,v,f) of current step 
-        Print_step ps(geo_step, lj_step);
-        if (istep % this->steps_per_print == 0)
-            ps.print_info(istep, this->append);
+            //4. print info(r,v,f) of current step 
+            Print_step ps(geo_step, lj_step);
+            if (istep % this->steps_per_print == 0)
+                ps.print_info(istep, this->append);
 
+            //5. update geo(r_t+dt) for next step 
         //5. update geo(r_t+dt) for next step 
-        //(exchange memory by pointers)
-        //no need in velocity verlet
-        std::vector<vec3>* tmp;
-        tmp = this->r_tmdt;
-        switch (this->verlet_method)
+            //5. update geo(r_t+dt) for next step 
+            //(exchange memory by pointers)
+            //no need in velocity verlet
+            std::vector<vec3>* tmp;
+            tmp = this->r_tmdt;
+            switch (this->verlet_method)
+            {
+            case 0:
+                this->r_tmdt = geo_step.r_t;
+                geo_step.r_t = tmp;
+                break;
+            case 1:
+                this->r_tmdt = geo_step.r_t;
+                geo_step.r_t = this->r_tpdt;
+                this->r_tpdt = tmp;
+                break;
+            }
+
+            // 6. collision, if NVT
+            if (this->ensemble == "NVT")
+                this->Anderson(geo_step, sgm_ads, generator);
+
+            //7. msd(if needed)
+            if (this->cal_msd && istep%this->msd_print_interval==0)
+                this->print_msd(istep, geo_step.natom, geo_step.precision);
+
+            //8. rdf(if needed)
+            if (this->cal_rdf && istep >= this->rdf_start_step &&
+                istep <= this->rdf_end_step && istep % rdf_interval == 0)
+                this->rdf(geo_step);
+        };
+
+        single_step(geo_init, lj_init);
+
+        if(this->test_instable)
         {
-        case 0:
-            this->r_tmdt = geo_step.r_t;
-            geo_step.r_t = tmp;
-            break;
-        case 1:
-            this->r_tmdt = geo_step.r_t;
-            geo_step.r_t = this->r_tpdt;
-            this->r_tpdt = tmp;
-            break;
+            single_step(geo_new, lj_new);
+            //cal diff
+            double diff =0.0;
+            for(int ia=0 ; ia < geo_init.natom;++ia){
+                diff += pow((geo_init.atom_coords[ia]-geo_new.atom_coords[ia]).norm, 2);
+            }
+            //print diff of each step
+            std::ofstream ofs;
+            ofs.open("diff.txt", std::ios_base::app);
+            ofs << std::setprecision(geo_init.precision) << std::setw(4) << istep 
+            << "\t"<< diff << std::endl;
+            ofs.close();
+
         }
-
-        // 6. collision, if NVT
-        if (this->ensemble == "NVT")
-            this->Anderson(geo_step, sgm_ads, generator);
-
-        //7. msd(if needed)
-        if (this->cal_msd && istep%this->msd_print_interval==0)
-            this->print_msd(istep, geo_step.natom, geo_step.precision);
-
-        //8. rdf(if needed)
-        if (this->cal_rdf && istep >= this->rdf_start_step &&
-            istep <= this->rdf_end_step && istep % rdf_interval == 0)
-            this->rdf(geo_step);
     }
     
     end = clock();
@@ -307,8 +344,8 @@ void MD_step::main_step(Geo& geo_step, LJ_pot& lj_step)
         << " seconds for " << this->nstep << " steps." << std::endl;
     
     if (this->cal_rdf)
-        this->print_rdf((double)geo_step.natom
-            / (geo_step.R.x * geo_step.R.y * geo_step.R.z));
+        this->print_rdf((double)geo_init.natom
+            / (geo_init.R.x * geo_init.R.y * geo_init.R.z));
 
     return;
 }
