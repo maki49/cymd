@@ -10,7 +10,7 @@ LJ_pot::LJ_pot(int natom, double sigma, double epsilon, double rcut, vec3 R) :
     sigma(sigma), epsilon(epsilon), rcut(rcut), R(R)
 {
     double sr6 = pow(this->sigma / this->rcut, 6);
-    this->ene_shift = 2 * this->epsilon * sr6 * (sr6 - 1);
+    this->ene_shift = 4 * this->epsilon * sr6 * (sr6 - 1);
     this->atom_force.resize(natom);
     this->atom_pot.resize(natom);
 }
@@ -21,7 +21,7 @@ double LJ_pot::v_ij(vec3 r12, double rcut)  //potential between 2 atoms
     if(r12.norm < rcut)
     {
         double sr6 = pow(this->sigma/r12.norm, 6);
-        return 2*this->epsilon*sr6*(sr6-1)-this->ene_shift;
+        return 4*this->epsilon*sr6*(sr6-1)-this->ene_shift;
     }
     else
     {
@@ -51,7 +51,8 @@ double LJ_pot::V_at(int ia, std::vector<int> adj_list_i, std::vector<vec3>* atom
     double v = 0;
     for (int j =0;j<adj_list_i.size();++j)
     {
-        v += this->v_ij(Geo::shortest(atom_r->at(ia)-atom_r->at(adj_list_i[j]), R), rcut);
+        if (ia < adj_list_i[j])
+            v += this->v_ij(Geo::shortest(atom_r->at(ia)-atom_r->at(adj_list_i[j]), R), rcut);
     }
     return v;
 }
