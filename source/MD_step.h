@@ -26,7 +26,6 @@ private:
     //rcut_potential is fixed in lj_step;
     int max_neighbor;
     int verlet_method = 1;
-    bool append = true;
     std::string ensemble;
     double thermo_temperature=0.0;
     double nraise;

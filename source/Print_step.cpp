@@ -8,19 +8,19 @@ Print_step::~Print_step()
 {
 }
 
-void Print_step::print_info(int istep, bool append)
+void Print_step::print_info(int istep)
 {
-    this->print_position(istep, append);
-    this->print_velocity(istep, append);
-    this->print_force(istep, append);
-    this->print_log(istep, append);
+    this->print_position(istep);
+    this->print_velocity(istep);
+    this->print_force(istep);
+    this->print_log(istep);
 }
 
-void Print_step::print_position(int istep, bool append)
+void Print_step::print_position(int istep)
 {
     //const double Bohr2A = 0.5291770;
     std::ofstream ofs;
-    if(append)
+    if(istep)
         ofs.open("position.txt", std::ios_base::app);
     else  
         ofs.open("position.txt");
@@ -39,11 +39,11 @@ void Print_step::print_position(int istep, bool append)
     return;
 }
 
-void Print_step::print_velocity(int istep, bool append)
+void Print_step::print_velocity(int istep)
 {
     //const double Bohr2A = 0.5291770;
     std::ofstream ofs;
-    if(append)
+    if(istep)
         ofs.open("velocity.txt", std::ios_base::app);
     else  
         ofs.open("velocity.txt");
@@ -62,11 +62,11 @@ void Print_step::print_velocity(int istep, bool append)
     return;
 }
 
-void Print_step::print_force(int istep, bool append)
+void Print_step::print_force(int istep)
 {
     //const double Bohr2A = 0.5291770;
     std::ofstream ofs;
-    if(append)
+    if(istep)
         ofs.open("force.txt", std::ios_base::app);
     else  
         ofs.open("force.txt");
@@ -84,11 +84,11 @@ void Print_step::print_force(int istep, bool append)
     ofs.close();
     return;
 }
-void Print_step::print_log(int istep, bool append)
+void Print_step::print_log(int istep)
 {
     //const double Bohr2A = 0.5291770;
     std::ofstream ofs;
-    if(append)
+    if(istep)
         ofs.open("run.log", std::ios_base::app);
     else  
         ofs.open("run.log");

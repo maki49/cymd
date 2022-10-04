@@ -14,7 +14,6 @@ MD_step::MD_step(Input& input) :
     rcut_neighbor(input.rcut_potential + input.extra_rcut_neighbor),
     max_neighbor(input.max_neighbor),
     verlet_method(input.verlet_method),
-    append(input.append),
     ensemble(input.ensemble),
     cal_msd(input.cal_msd),
     msd_print_interval(input.msd_print_interval),
@@ -282,7 +281,7 @@ void MD_step::main_step(Input& input, Geo& geo_init, LJ_pot& lj_init)
             //4. print info(r,v,f) of current step 
             Print_step ps(geo_step, lj_step);
             if (istep % this->steps_per_print == 0)
-                ps.print_info(istep, this->append);
+                ps.print_info(istep);
 
             //5. update geo(r_t+dt) for next step 
         //5. update geo(r_t+dt) for next step 
@@ -330,7 +329,10 @@ void MD_step::main_step(Input& input, Geo& geo_init, LJ_pot& lj_init)
             }
             //print diff of each step
             std::ofstream ofs;
-            ofs.open("diff.txt", std::ios_base::app);
+            if(istep)
+                ofs.open("diff.txt", std::ios_base::app);
+            else
+                ofs.open("diff.txt");
             ofs << std::setprecision(geo_init.precision) << std::setw(4) << istep 
             << "\t"<< diff << std::endl;
             ofs.close();

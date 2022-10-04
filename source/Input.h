@@ -21,7 +21,6 @@ public:
     double mass;
     int read_vel = 0;
     double init_temperature;  //(K)
-    bool append = true;
 
     int nstep = 0;
     double dt = 0.01;//ps
