@@ -149,6 +149,7 @@ void MD_step::velocity_verlet_before(Geo& geo_step, LJ_pot& lj_step)
         vec3 dr = geo_step.atom_v[ia] * dt
             + lj_step.atom_force[ia] / 2 / m * dt2;
         geo_step.r_t->at(ia) += dr;
+        geo_step.r_t->at(ia) = geo_step.res_in_box(geo_step.r_t->at(ia) , geo_step.R);
         if(this->cal_msd)
             this->atom_msd.at(ia)+=geo_step.shortest(dr, geo_step.R);
         geo_step.atom_v[ia] += lj_step.atom_force[ia] / 2 / m * dt;
@@ -225,6 +226,7 @@ void MD_step::main_step(Input& input, Geo& geo_init, LJ_pot& lj_init)
     LJ_pot lj_new(geo_init.natom,
         input.sigma, input.epsilon, input.rcut_potential,geo_init.R);
     if(this->test_instable){
+        assert(this->verlet_method==2); //only support velocity verlet
         geo_new.read_geo(input.geo_in_file, input.read_vel);  //read coord and velocity
         geo_new.atom_coords[0].x+=1e-10;
     }
@@ -269,7 +271,6 @@ void MD_step::main_step(Input& input, Geo& geo_init, LJ_pot& lj_init)
                 this->verlet_1(istep, geo_step, lj_step);
                 break;
             case 2:
-            
                 if (istep > 0)
                     this->velocity_verlet_after(geo_step, lj_step);
                 break;

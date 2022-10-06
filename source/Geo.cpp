@@ -105,7 +105,9 @@ void Geo::read_geo(std::string& geo_in_file, int read_vel)
         }
     }
     //continue reading velocity
+
     double sum_v2 = 0;
+    vec3 sum_v = vec3(0, 0, 0);
     for (int i = 0;i < this->natom;++i)
     {
         ifs >> type_read;
@@ -116,7 +118,9 @@ void Geo::read_geo(std::string& geo_in_file, int read_vel)
         this->atom_v.push_back(vec_read);
 
         sum_v2 += vec_read.norm * vec_read.norm;
+        sum_v+=vec_read;
     }
+    std::cout<<"mass center velocity: " << sum_v.x<<" "<<sum_v.y <<" "<< sum_v.z<<std::endl;
     assert(this->natom == this->atom_v.size());
     std::cout << "Read atom velocity from geo file." << std::endl;
     this->cal_EkT(sum_v2);

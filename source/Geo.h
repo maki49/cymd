@@ -6,9 +6,9 @@ class Geo
 {
 public:
     const double kb = 1.380649;    //*1e-23, bolzmann constant
-    const double NA = 6.02214076;      //*1e23
+    const double NA = 6.02214086;      //*1e23
     const double Ap2ms = 100;  //Ang/ps -> m/s
-    const double e = 1.602176634;   //1e-19 C
+    const double e = 1.602176634;   //*1e-19 C
 
     Geo();
     Geo(double m, double T0);
