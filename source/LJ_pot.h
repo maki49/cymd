@@ -22,7 +22,8 @@ public:
     LJ_pot(int natom, double sigma, double epsilon, double rcut, vec3 R);
     ~LJ_pot();
 
-    void cal_EpF(Geo geo);
+    void cal_EpF(Geo& geo);
+    void cal_EpF_faster(Geo& geo);
     void print_EF(int nat, int precision);
     vec3 f_ij(vec3 r12, double rcut);
 

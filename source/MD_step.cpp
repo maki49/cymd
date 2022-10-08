@@ -276,7 +276,8 @@ void MD_step::main_step(Input& input, Geo& geo_init, LJ_pot& lj_init)
                 //geo_step.update_dis_list();
             
             //2. cal force(f_t) based on geo of current step
-            lj_step.cal_EpF(geo_step);
+            //lj_step.cal_EpF(geo_step);
+            lj_step.cal_EpF_faster(geo_step);
 
             //3. verlet: calculate r_t+dt, v_t and Ek;
             //velocity verlet: update v_t after f_t, and calculate Ek

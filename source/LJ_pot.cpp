@@ -66,7 +66,7 @@ vec3 LJ_pot::F_at(int ia, std::vector<int> adj_list_i, std::vector<vec3>* atom_r
     }
     return f;
 }
-void LJ_pot::cal_EpF(Geo geo)
+void LJ_pot::cal_EpF(Geo& geo)
 {
     vec3 sum_all_f(0, 0, 0);
     this->Ep=0;
@@ -81,6 +81,30 @@ void LJ_pot::cal_EpF(Geo geo)
     assert(abs(sum_all_f.norm) < 1e-5);  //check force
     return;
 }
+
+void LJ_pot::cal_EpF_faster(Geo& geo)
+{
+    //initialize
+    this->Ep=0;
+    for (int ia = 0;ia<geo.natom;++ia)
+        this->atom_force[ia]=vec3(0,0,0);
+
+    for (int ia = 0;ia<geo.natom;++ia)
+    {
+        for (int j =0;j<geo.adj_list[ia].size();++j)
+        {
+            if(ia < geo.adj_list[ia][j])
+            {
+                this->Ep +=this->v_ij(Geo::shortest(geo.r_t->at(ia)-geo.r_t->at(geo.adj_list[ia][j]), R), this->rcut);
+                vec3 f=this->f_ij(Geo::shortest(geo.r_t->at(ia) - geo.r_t->at(geo.adj_list[ia][j]), R), this->rcut);
+                this->atom_force[ia] +=f;
+                this->atom_force[geo.adj_list[ia][j]] -= f;
+            }
+        }
+    }
+    return;
+}
+
 void LJ_pot::print_EF(int nat, int precision)
 {
     std::ofstream ofs;
