@@ -28,6 +28,8 @@ private:
     int verlet_method = 1;
     std::string ensemble;
     double thermo_temperature=0.0;
+    int thermostat=1;
+    double tau=__DBL_MAX__;
     double nraise;
     bool cal_msd=false;
     int msd_print_interval;
@@ -59,6 +61,7 @@ private:
     void verlet_1(int istep, Geo& geo_step, LJ_pot& lj_step);
     void velocity_verlet_before(Geo& geo_step, LJ_pot& lj_step);
     void velocity_verlet_after(Geo& geo_step, LJ_pot& lj_step);
+    void Berendson(Geo &geo_step, double tau);
     void Anderson(Geo& geo_step, double sgm, 
         std::default_random_engine& generator);
     void print_msd(int istep, int natom, int precision);

@@ -31,6 +31,8 @@ public:
     
     //NVT paras
     double thermo_temperature;
+    int thermostat=1;
+    double tau=__DBL_MAX__;
     double nraise;
     bool cal_msd=false;
     int msd_print_interval;

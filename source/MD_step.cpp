@@ -4,6 +4,7 @@
 #include <cmath>
 #include <iomanip>
 #include <assert.h>
+#include <algorithm>
 
 MD_step::MD_step() {}
 MD_step::MD_step(Input& input) :
@@ -28,7 +29,18 @@ MD_step::MD_step(Input& input) :
     if (ensemble == "NVT")
     {
         this->thermo_temperature = input.thermo_temperature;
-        this->nraise = input.nraise;
+        this->thermostat = input.thermostat;
+        std::cout<<thermostat<<std::endl;
+        switch (thermostat)
+        {
+        case 1:
+            this->tau=input.tau;
+            break;
+        case 2:
+            this->nraise = input.nraise;
+        default:
+            break;
+        }
     }
 };
 MD_step::~MD_step() {}
@@ -168,6 +180,12 @@ void MD_step::velocity_verlet_after(Geo& geo_step, LJ_pot& lj_step)
     return;
 }
 
+void MD_step::Berendson(Geo& geo_step, double tau)
+{
+    double factor=sqrt(1+this->dt/tau*(this->thermo_temperature/geo_step.temperature-1));
+    std::transform(geo_step.atom_v.begin(), geo_step.atom_v.end(), geo_step.atom_v.begin(),
+        [factor](vec3 x){return x*factor;});  //v=factor*v
+}
 void MD_step::Anderson(Geo& geo_step, double sgm, 
     std::default_random_engine& generator)
 {
@@ -304,9 +322,20 @@ void MD_step::main_step(Input& input, Geo& geo_init, LJ_pot& lj_init)
                 break;
             }
 
-            // 6. collision, if NVT
+            // 6.  if NVT, apply thermostate to change velocity
             if (this->ensemble == "NVT")
-                this->Anderson(geo_step, sgm_ads, generator);
+                switch (this->thermostat)
+                {
+                case 1:
+                    this->Berendson(geo_step, this->tau);
+                    break;
+                case 2:
+                    this->Anderson(geo_step, sgm_ads, generator);
+                    break;
+                default:
+                    break;
+                }
+                
 
             //7. msd(if needed)
             if (this->cal_msd && istep%this->msd_print_interval==0)
