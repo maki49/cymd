@@ -10,3 +10,4 @@ mv mymd ../..
 make clean
 cd ..
 rm -r build
+cd ..
