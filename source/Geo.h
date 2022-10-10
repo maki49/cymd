@@ -5,7 +5,7 @@
 class Geo
 {
 public:
-    const double kb = 1.380649;    //*1e-23, bolzmann constant
+    const double kb = 1.38064852;    //*1e-23, bolzmann constant
     const double NA = 6.02214086;      //*1e23
     const double Ap2ms = 100;  //Ang/ps -> m/s
     const double e = 1.602176634;   //*1e-19 C
@@ -14,7 +14,7 @@ public:
     Geo(double m, double T0);
     ~Geo();
     
-    void read_geo(std::string& geo_in_file, int read_vel);
+    void read_geo(std::string& geo_in_file, int read_vel, std::string v0_type);
     //void write_coord(std::string& geo_out_file);
     //search adjacent atoms for adj_list, NOT including itself
     void search_adj(double rcut, int max_neighbor);
@@ -45,7 +45,7 @@ public:
     double temperature;
     
 private:
-    void randomv(double T_init);
+    void randomv(double T_init, std::string v0_type);
     double v_fctr(double T_init);
 
 };

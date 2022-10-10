@@ -13,7 +13,7 @@
 Geo::Geo(){}
 Geo::Geo(double m, double T0) : mass(m), temperature(T0) {}
 Geo::~Geo() {}
-void Geo::read_geo(std::string& geo_in_file, int read_vel)
+void Geo::read_geo(std::string& geo_in_file, int read_vel, std::string v0_type)
 {
     std::ifstream ifs;
     ifs.open(geo_in_file);
@@ -92,7 +92,7 @@ void Geo::read_geo(std::string& geo_in_file, int read_vel)
     if (!read_vel)  //generate velo radomly
     {
         ifs.close();
-        this->randomv(this->temperature);
+        this->randomv(this->temperature, v0_type);
         std::cout << "Generated velocity randomly." << std::endl;
         return;
     }
@@ -197,20 +197,49 @@ void Geo::print_adj_list(int ia)
     ofs.close();
 }
 
-void Geo::randomv(double T_init)
+void Geo::randomv(double T_init, std::string v0_type)
 {
-    //step1: generate randomly and sum
-    srand((unsigned)time(NULL));    //random seed
-    
+    //step1: generate randomly and sum    
     vec3 sum_v = vec3(0, 0, 0);
-    for (int i = 0;i < this->natom;++i)
+
+    if (v0_type=="maxwell")
     {
-        vec3 v = vec3(rand() / double(RAND_MAX) - 0.5,
-            rand() / double(RAND_MAX) - 0.5, rand() / double(RAND_MAX) - 0.5);
-        this->atom_v.push_back(v);
-        //sum_mv+=v*atom_mass[atom_type[ia]];
-        //sum_m+=atom_mass[atom_type[ia]];
-        sum_v+=v;   // for all the atoms are the same type
+        //random seed
+        //( Caution: FAKE random number, set seed INITIALLY !! )
+        srand((unsigned)time(NULL));
+        std::default_random_engine generator(time(NULL));
+        double sgm = sqrt(this->kb * T_init / (this->mass * 1e-3 / NA))*1e-2; 
+        auto gaussrand = [&]() ->double
+        {   //std-lib
+            std::normal_distribution<double> distribution(0, sgm);
+            return distribution(generator);
+        };
+        
+        for (int i = 0;i < this->natom;++i)
+        {
+            vec3 v(gaussrand(), gaussrand(), gaussrand()); 
+            this->atom_v.push_back(v);
+            sum_v+=v;   // for all the atoms are the same type
+        }
+
+    }
+    else if (v0_type=="uniform")
+    {
+        srand((unsigned)time(NULL));    //random seed
+        for (int i = 0;i < this->natom;++i)
+        {
+            vec3 v = vec3(rand() / double(RAND_MAX) - 0.5,
+                rand() / double(RAND_MAX) - 0.5, rand() / double(RAND_MAX) - 0.5);
+            this->atom_v.push_back(v);
+            //sum_mv+=v*atom_mass[atom_type[ia]];
+            //sum_m+=atom_mass[atom_type[ia]];
+            sum_v+=v;   // for all the atoms are the same type
+        }
+    }
+    else 
+    {
+        std::cout<<"Error! Check your  v0_type!"<<std::endl;
+        exit(1);
     }
 
     //step2: v -> (v-vc)

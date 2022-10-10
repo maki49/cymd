@@ -33,6 +33,7 @@ void Input::read_input_file(std::string& input_file)
         if (tmp == "sigma") ifs >> this->sigma;
         if (tmp == "mass") ifs >> this->mass;
         if (tmp == "read_vel") ifs >> this->read_vel;
+        if (tmp == "v0_type") ifs >> this->v0_type;
         if (tmp == "init_temperature") ifs >> this->init_temperature;
         if (tmp == "nstep") ifs >> this->nstep;
         if (tmp == "dt") ifs >> this->dt;

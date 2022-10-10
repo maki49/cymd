@@ -20,6 +20,7 @@ public:
 
     double mass;
     int read_vel = 0;
+    std::string v0_type;
     double init_temperature;  //(K)
 
     int nstep = 0;

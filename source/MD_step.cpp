@@ -30,7 +30,7 @@ MD_step::MD_step(Input& input) :
     {
         this->thermo_temperature = input.thermo_temperature;
         this->thermostat = input.thermostat;
-        std::cout<<thermostat<<std::endl;
+        std::cout<<"NVT-"<< thermostat<<" thermostat"<<std::endl;
         switch (thermostat)
         {
         case 1:
@@ -245,7 +245,7 @@ void MD_step::main_step(Input& input, Geo& geo_init, LJ_pot& lj_init)
         input.sigma, input.epsilon, input.rcut_potential,geo_init.R);
     if(this->test_instable){
         assert(this->verlet_method==2); //only support velocity verlet
-        geo_new.read_geo(input.geo_in_file, input.read_vel);  //read coord and velocity
+        geo_new.read_geo(input.geo_in_file, input.read_vel, input.v0_type);  //read coord and velocity
         geo_new.atom_coords[0].x+=1e-10;
     }
 
@@ -324,7 +324,7 @@ void MD_step::main_step(Input& input, Geo& geo_init, LJ_pot& lj_init)
             }
 
             // 6.  if NVT, apply thermostate to change velocity
-            if (this->ensemble == "NVT")
+            if (this->ensemble == "NVT" && istep)
                 switch (this->thermostat)
                 {
                 case 1:

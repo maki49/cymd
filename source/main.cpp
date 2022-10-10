@@ -16,7 +16,7 @@ int main(int argc, char* argv[])
     input.read_input_file(input_file);
     
     Geo geo_init(input.mass, input.init_temperature);
-    geo_init.read_geo(input.geo_in_file, input.read_vel);  //read coord and velocity
+    geo_init.read_geo(input.geo_in_file, input.read_vel, input.v0_type);  //read coord and velocity
     
     LJ_pot lj_init(geo_init.natom,
         input.sigma, input.epsilon, input.rcut_potential,geo_init.R);
