@@ -161,7 +161,8 @@ void MD_step::velocity_verlet_before(Geo& geo_step, LJ_pot& lj_step)
         vec3 dr = geo_step.atom_v[ia] * dt
             + lj_step.atom_force[ia] / 2 / m * dt2;
         geo_step.r_t->at(ia) += dr;
-        geo_step.r_t->at(ia) = geo_step.res_in_box(geo_step.r_t->at(ia) , geo_step.R);
+        if(!this->test_instable)
+            geo_step.r_t->at(ia) = geo_step.res_in_box(geo_step.r_t->at(ia) , geo_step.R);
         if(this->cal_msd)
             this->atom_msd.at(ia)+=geo_step.shortest(dr, geo_step.R);
         geo_step.atom_v[ia] += lj_step.atom_force[ia] / 2 / m * dt;
